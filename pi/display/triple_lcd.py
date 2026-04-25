@@ -70,7 +70,8 @@ class Screen:
             log.info("Screen %d (%s) %dx%d on SPI%d ready",
                      self.id, self.label, self.w, self.h, cfg["spi_port"])
         except Exception as e:
-            log.error("Screen %d init failed: %s", self.id, e)
+            import traceback
+            log.error("Screen %d init failed: %s\n%s", self.id, e, traceback.format_exc())
 
     def show(self, img: Image.Image):
         # Resize to exact screen dimensions if caller passes wrong size
