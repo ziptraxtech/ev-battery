@@ -1,0 +1,17 @@
+[Unit]
+Description=ZipSure EV Battery Dashboard
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/zipsure
+ExecStart=/home/pi/zipsure/venv/bin/python dashboard.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

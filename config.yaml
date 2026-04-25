@@ -1,0 +1,121 @@
+# ZipSure EV Battery Monitor — Configuration
+
+# --- Communication: ESP32 → Pi ---
+# mode: "serial" (USB UART cable) or "mqtt" (WiFi)
+comms:
+  mode: serial
+
+  serial:
+    port: /dev/ttyUSB0   # ESP32 USB → Pi; change to /dev/ttyACM0 if needed
+    baud: 115200
+    timeout: 2.0
+
+  mqtt:
+    broker: "192.168.1.100"
+    port: 1883
+    topic: "zipsure/battery/sensors"
+    client_id: "pizero-gateway"
+    username: ""
+    password: ""
+    tls: false
+
+# --- Waveshare Triple LCD HAT (Zero LCD HAT A) ---
+# Wiki: https://www.waveshare.com/wiki/Zero_LCD_HAT_(A)
+#
+# Hardware layout:
+#   Screen 0 — 1.3"  240×240  ST7789  on SPI1
+#   Screen 1 — 0.96" 160×80   ST7735  on SPI0 CE0
+#   Screen 2 — 0.96" 160×80   ST7735  on SPI0 CE1
+#
+# Requires in /boot/config.txt:
+#   dtoverlay=spi1-1cs
+display:
+  enabled: true
+  spi_speed: 40000000   # 40 MHz
+
+  screens:
+    - id: 0
+      label: "GAS"
+      width: 240
+      height: 240
+      driver: ST7789
+      spi_port: 1       # SPI1 — needs dtoverlay=spi1-1cs
+      cs_pin: 18        # BCM 18  (board pin 12)
+      dc_pin: 22        # BCM 22  (board pin 15)
+      rst_pin: 27       # BCM 27  (board pin 13)
+      backlight_pin: 19 # BCM 19  (board pin 35)
+      rotation: 0
+
+    - id: 1
+      label: "TEMP"
+      width: 160
+      height: 80
+      driver: ST7735
+      spi_port: 0       # SPI0 CE0
+      cs_pin: 8         # BCM 8   (board pin 24)
+      dc_pin: 4         # BCM 4   (board pin 7)
+      rst_pin: 24       # BCM 24  (board pin 18)
+      backlight_pin: 13 # BCM 13  (board pin 33)
+      rotation: 0
+
+    - id: 2
+      label: "CURRENT"
+      width: 160
+      height: 80
+      driver: ST7735
+      spi_port: 0       # SPI0 CE1
+      cs_pin: 7         # BCM 7   (board pin 26)
+      dc_pin: 5         # BCM 5   (board pin 29)
+      rst_pin: 23       # BCM 23  (board pin 16)
+      backlight_pin: 12 # BCM 12  (board pin 32)
+      rotation: 0
+
+# --- Alert thresholds ---
+# Sensors: MH-Z14A (CO2 NDIR), PT100+MAX31865 (temp), WCM7500 (current)
+alerts:
+  gas_ppm_warning: 1000    # CO2 ppm — yellow (fresh air ~400 ppm)
+  gas_ppm_critical: 2000   # CO2 ppm — red (dangerous battery off-gassing)
+  temp_warning_c: 45.0     # battery pack warning °C
+  temp_critical_c: 60.0    # thermal runaway threshold °C
+  current_max_a: 100.0     # WCM7500 full-scale A (set to your pack's rating)
+  voltage_min_v: 40.0      # low battery voltage threshold V
+
+# --- Cloud upload ---
+# Primary transport: SIM A7672S (4G LTE) via AT commands on UART
+# Fallback: direct HTTP if Pi has WiFi/Ethernet
+cloud:
+  enabled: true
+
+  # "gsm"  — SIM A7672S over UART (recommended for vehicle use)
+  # "http" — direct HTTP (requires WiFi/Ethernet)
+  # "mqtt" — MQTT broker
+  mode: "gsm"
+
+  gsm:
+    port: /dev/ttyS0          # Pi UART — /dev/ttyS0 or /dev/serial0
+    baud: 115200
+    apn: "airtelgprs.com"     # ← set your SIM card APN here
+    endpoint: "https://your-server.com/api/v1/telemetry"
+    api_key: "YOUR_API_KEY_HERE"
+    interval_seconds: 10
+    at_timeout: 10            # seconds to wait for AT response
+
+  http:
+    endpoint: "https://your-server.com/api/v1/telemetry"
+    api_key: "YOUR_API_KEY_HERE"
+    interval_seconds: 10
+    timeout: 5
+
+  mqtt:
+    broker: "mqtt.your-server.com"
+    port: 8883
+    topic: "zipsure/fleet/{device_id}/telemetry"
+    username: ""
+    password: ""
+    tls: true
+
+# --- Device identity ---
+device:
+  id: "pizero-001"
+  vehicle_id: "EV-001"
+  location: "battery_bay"

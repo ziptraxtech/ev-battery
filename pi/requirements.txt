@@ -1,0 +1,7 @@
+pyserial>=3.5
+paho-mqtt>=1.6
+requests>=2.28
+Pillow>=10.0
+PyYAML>=6.0
+# Display drivers (installed by install.sh):
+#   pip install st7789 st7735 RPi.GPIO
