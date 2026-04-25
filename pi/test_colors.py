@@ -5,8 +5,8 @@ Look at Screen 1 (top) and Screen 2 (bottom) for each config.
 Best config = solid RED on Screen 1, solid GREEN on Screen 2, no noise.
 """
 import gc
-from PIL import Image
-import st7735
+from PIL import Image, ImageDraw, ImageFont
+import st7735, st7789
 
 CONFIGS = [
     # (label,                    rot, offset_left, offset_top, bgr)
@@ -24,6 +24,27 @@ CONFIGS = [
 
 red   = Image.new("RGB", (160, 80), (255,   0,   0))
 green = Image.new("RGB", (160, 80), (  0, 255,   0))
+
+# Init middle screen (ST7789 1.3") and show sample data
+print("Initialising middle screen (ST7789)...")
+try:
+    mid = st7789.ST7789(
+        width=240, height=240, rotation=0,
+        port=1, cs=0, dc=22, rst=27, backlight=19,
+        spi_speed_hz=40000000,
+    )
+    img = Image.new("RGB", (240, 240), (15, 15, 15))
+    d   = ImageDraw.Draw(img)
+    font = ImageFont.load_default()
+    d.text((20, 40),  "ZipSure EV",     font=font, fill=(255,255,255))
+    d.text((20, 80),  "CO2:  --- ppm",  font=font, fill=(0, 200, 70))
+    d.text((20, 120), "TEMP: --- C",    font=font, fill=(0, 200, 70))
+    d.text((20, 160), "CURR: --- A",    font=font, fill=(40, 130, 255))
+    d.text((20, 200), "Waiting ESP32",  font=font, fill=(90, 90, 90))
+    mid.display(img)
+    print("Middle screen OK")
+except Exception as e:
+    print(f"Middle screen FAILED: {e}")
 
 for i, (label, rot, off_l, off_t, bgr) in enumerate(CONFIGS, 1):
     print(f"\nConfig {i}/{len(CONFIGS)}: {label}")
