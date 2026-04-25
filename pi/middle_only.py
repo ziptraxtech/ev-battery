@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Run only the middle 1.3" screen with live sensor data. Small screens off."""
-import time, threading, json, signal, sys
+import time, threading, json, signal, sys, subprocess
 import RPi.GPIO as GPIO
 from PIL import Image, ImageDraw, ImageFont
 import st7789, serial
@@ -11,6 +11,10 @@ GPIO.setmode(GPIO.BCM)
 for pin in (13, 12):
     GPIO.setup(pin, GPIO.OUT)
     GPIO.output(pin, GPIO.LOW)
+
+# Pre-drive RST (GPIO27) HIGH before init — ensures display is out of hardware reset
+subprocess.run(["pinctrl", "set", "27", "op", "dh"], check=False, capture_output=True)
+time.sleep(0.1)
 
 # Init middle screen
 mid = st7789.ST7789(
