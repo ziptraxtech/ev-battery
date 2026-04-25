@@ -39,8 +39,8 @@ display:
       width: 240
       height: 240
       driver: ST7789
-      spi_port: 1       # SPI1 — needs dtoverlay=spi1-1cs
-      cs_pin: 18        # BCM 18  (board pin 12)
+      spi_port: 1       # SPI1
+      cs: 0             # CE0 → /dev/spidev1.0  (GPIO18)
       dc_pin: 22        # BCM 22  (board pin 15)
       rst_pin: 27       # BCM 27  (board pin 13)
       backlight_pin: 19 # BCM 19  (board pin 35)
@@ -51,8 +51,8 @@ display:
       width: 160
       height: 80
       driver: ST7735
-      spi_port: 0       # SPI0 CE0
-      cs_pin: 8         # BCM 8   (board pin 24)
+      spi_port: 0       # SPI0
+      cs: 0             # CE0 → /dev/spidev0.0  (GPIO8)
       dc_pin: 4         # BCM 4   (board pin 7)
       rst_pin: 24       # BCM 24  (board pin 18)
       backlight_pin: 13 # BCM 13  (board pin 33)
@@ -63,8 +63,8 @@ display:
       width: 160
       height: 80
       driver: ST7735
-      spi_port: 0       # SPI0 CE1
-      cs_pin: 7         # BCM 7   (board pin 26)
+      spi_port: 0       # SPI0
+      cs: 1             # CE1 → /dev/spidev0.1  (GPIO7)
       dc_pin: 5         # BCM 5   (board pin 29)
       rst_pin: 23       # BCM 23  (board pin 16)
       backlight_pin: 12 # BCM 12  (board pin 32)

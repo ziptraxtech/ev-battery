@@ -55,7 +55,7 @@ class Screen:
                 height=self.h,
                 rotation=cfg.get("rotation", 0),
                 port=spi_port,
-                cs=cfg["cs_pin"],
+                cs=cfg["cs"],       # CE index: 0=CE0, 1=CE1 (NOT the GPIO pin)
                 dc=cfg["dc_pin"],
                 rst=cfg.get("rst_pin"),
                 backlight=cfg.get("backlight_pin"),
