@@ -41,11 +41,20 @@ class Screen:
             return
 
         try:
+            spi_port = cfg["spi_port"]
+            # Check SPI device exists before attempting init
+            import os
+            spi_dev = f"/dev/spidev{spi_port}.0"
+            if not os.path.exists(spi_dev):
+                log.error("Screen %d: %s not found — is dtoverlay=spi%d-1cs in /boot/firmware/config.txt?",
+                          self.id, spi_dev, spi_port)
+                return
+
             kwargs = dict(
                 width=self.w,
                 height=self.h,
                 rotation=cfg.get("rotation", 0),
-                port=cfg["spi_port"],
+                port=spi_port,
                 cs=cfg["cs_pin"],
                 dc=cfg["dc_pin"],
                 rst=cfg.get("rst_pin"),

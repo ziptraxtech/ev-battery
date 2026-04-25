@@ -92,7 +92,7 @@ cloud:
   mode: "gsm"
 
   gsm:
-    port: /dev/ttyAMA0        # Pi full UART (freed after disable-bt overlay)
+    port: /dev/serial0        # symlink → correct UART regardless of BT config
     baud: 115200
     apn: "airtelgprs.com"     # ← set your SIM card APN here
     endpoint: "https://your-server.com/api/v1/telemetry"
