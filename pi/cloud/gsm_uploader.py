@@ -109,7 +109,7 @@ class GsmUploader:
         # Wait for SIM and network registration (up to 30s)
         for _ in range(10):
             resp = self._at("AT+CREG?", expect="+CREG")
-            if resp and ",1" in resp or ",5" in resp:
+            if resp and (",1" in resp or ",5" in resp):
                 break
             time.sleep(3)
 
