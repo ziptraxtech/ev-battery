@@ -35,11 +35,7 @@ F_MINI   = _font("RobotoMono-Regular.ttf", 11)
 F_BAR_LBL = _font("RobotoMono-Regular.ttf", 10)
 F_BAR_VAL = _font("RobotoMono-Bold.ttf",    13)
 
-# Palette
-DARK    = (12,  12,  12)
-WHITE   = (255, 255, 255)
-GREY    = (85,  85,  85)
-DIM     = (40,  40,  40)
+# Data colours (same in both themes)
 GREEN   = (0,   210,  70)
 YELLOW  = (255, 210,   0)
 RED     = (220,  30,  30)
@@ -47,6 +43,23 @@ CYAN    = (0,   200, 220)
 ORANGE  = (255, 140,   0)
 BLUE    = (40,  130, 255)
 PURPLE  = (160,  50, 240)
+
+# Theme-aware palette — reassigned by set_theme()
+DARK   = (12,  12,  12)
+WHITE  = (255, 255, 255)
+GREY   = (85,  85,  85)
+DIM    = (40,  40,  40)
+
+_THEMES = {
+    "dark":  {"DARK": (12,12,12),    "WHITE": (255,255,255), "GREY": (85,85,85),   "DIM": (40,40,40)},
+    "light": {"DARK": (230,230,230), "WHITE": (20,20,20),    "GREY": (130,130,130),"DIM": (180,180,180)},
+}
+
+def set_theme(name: str):
+    """Switch between 'dark' and 'light' themes."""
+    global DARK, WHITE, GREY, DIM
+    t = _THEMES.get(name, _THEMES["dark"])
+    DARK, WHITE, GREY, DIM = t["DARK"], t["WHITE"], t["GREY"], t["DIM"]
 
 
 def _status_color(level: str) -> tuple:

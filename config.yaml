@@ -76,6 +76,15 @@ display:
       offset_top: 1
       bgr: true
 
+
+# --- Hardware buttons ---
+# K1/K2 on Waveshare Zero LCD HAT (A).
+# NOTE: Waveshare docs list K1=GPIO21, K2=GPIO20, but those are SPI1 SCLK/MOSI.
+# Check ~/Zero_LCD_HAT_A_Demo for actual pin numbers and update here.
+buttons:
+  k1_pin: 21   # K1 → dark mode
+  k2_pin: 20   # K2 → light mode
+
 # --- Alert thresholds ---
 # Sensors: MH-Z14A (CO2 NDIR), PT100+MAX31865 (temp), WCM7500 (current)
 alerts:

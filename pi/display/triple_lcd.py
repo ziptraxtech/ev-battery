@@ -114,11 +114,8 @@ class Screen:
             img = img.resize((self.w, self.h), Image.LANCZOS)
 
         # Rotate landscape image to portrait for the hardware driver
-        if getattr(self, "_landscape_rot", 0):
-            # rotation=1 (MV+MX): rotate 90° CW (PIL -90) to portrait
-            # rotation=3 (MV+MY): rotate 90° CCW (PIL +90) to portrait
-            angle = 90 if self._landscape_rot == 3 else -90
-            img = img.rotate(angle, expand=True)
+        if self._landscape_rot:
+            img = img.rotate(90, expand=True)
 
         if self._dev:
             self._dev.display(img)

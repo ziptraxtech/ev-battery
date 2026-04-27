@@ -12,7 +12,7 @@ import threading
 import yaml
 
 from display.triple_lcd import TripleLCD
-from display.widgets    import gas_screen, temperature_screen, current_screen, offline_screen
+from display.widgets    import gas_screen, temperature_screen, current_screen, offline_screen, set_theme
 
 logging.basicConfig(
     level=logging.INFO,
@@ -54,6 +54,7 @@ class Dashboard:
         self._running    = False
 
         self._display  = TripleLCD(cfg)
+        self._setup_buttons(cfg.get("buttons", {}))
 
         cloud_mode = cfg["cloud"].get("mode", "http")
         if cloud_mode == "gsm":
@@ -74,6 +75,23 @@ class Dashboard:
         else:
             from sensors.mqtt_reader import MqttReader
             self._reader = MqttReader(comms["mqtt"], callback=self._on_data)
+
+    def _setup_buttons(self, btn_cfg: dict):
+        k1 = btn_cfg.get("k1_pin")
+        k2 = btn_cfg.get("k2_pin")
+        if not k1 or not k2:
+            return
+        try:
+            import RPi.GPIO as GPIO
+            GPIO.setwarnings(False)
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(k1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.setup(k2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.add_event_detect(k1, GPIO.FALLING, callback=lambda _: set_theme("dark"),  bouncetime=300)
+            GPIO.add_event_detect(k2, GPIO.FALLING, callback=lambda _: set_theme("light"), bouncetime=300)
+            log.info("Buttons: K1(GPIO%d)=dark  K2(GPIO%d)=light", k1, k2)
+        except Exception as e:
+            log.warning("Button setup failed: %s", e)
 
     def _on_data(self, data: dict):
         with self._lock:
