@@ -42,6 +42,12 @@ class Screen:
 
         try:
             spi_port = cfg["spi_port"]
+            # GPIO19 is SPI1 MISO but is also the ST7789 backlight pin on this HAT.
+            # Drive it HIGH via pinctrl (bypasses gpiod so no EBUSY) before init.
+            if spi_port == 1:
+                import subprocess as _sp
+                _sp.run(["pinctrl", "set", "19", "op", "dh"], check=False, capture_output=True)
+
             # Check SPI device exists before attempting init
             import os
             spi_dev = f"/dev/spidev{spi_port}.0"

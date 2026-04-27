@@ -12,6 +12,9 @@ for pin in (13, 12):
     GPIO.setup(pin, GPIO.OUT)
     GPIO.output(pin, GPIO.LOW)
 
+# GPIO19 is SPI1 MISO but doubles as backlight — drive HIGH via pinctrl (bypasses
+# gpiod ownership so no EBUSY) before ST7789 claims any pins.
+subprocess.run(["pinctrl", "set", "19", "op", "dh"], check=False, capture_output=True)
 # Pre-drive RST (GPIO27) HIGH before init — ensures display is out of hardware reset
 subprocess.run(["pinctrl", "set", "27", "op", "dh"], check=False, capture_output=True)
 time.sleep(0.1)
