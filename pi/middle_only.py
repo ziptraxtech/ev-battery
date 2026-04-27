@@ -19,7 +19,7 @@ time.sleep(0.1)
 # Init middle screen
 mid = st7789.ST7789(
     width=240, height=240, rotation=0,
-    port=1, cs=0, dc=22, rst=27, backlight=19,
+    port=1, cs=0, dc=22, rst=27, backlight=None,
     spi_speed_hz=40000000,
 )
 

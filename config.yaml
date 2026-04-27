@@ -43,7 +43,10 @@ display:
       cs: 0             # CE0 → /dev/spidev1.0  (GPIO18)
       dc_pin: 22        # BCM 22  (board pin 15)
       rst_pin: 27       # BCM 27  (board pin 13)
-      backlight_pin: 19 # BCM 19  (board pin 35)
+      # backlight_pin intentionally omitted: GPIO19 is SPI1 MISO (spi1-1cs overlay
+      # claims it); passing it to the ST7789 library causes EBUSY and cascades to
+      # all subsequent screen inits failing.  Backlight is left in kernel-default
+      # state (MISO idles HIGH on most Pi SPI1 configs → backlight stays on).
       rotation: 0
 
     - id: 1
