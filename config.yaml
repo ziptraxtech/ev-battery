@@ -56,7 +56,7 @@ display:
       dc_pin: 4         # BCM 4   (board pin 7)
       rst_pin: 24       # BCM 24  (board pin 18)
       backlight_pin: 13 # BCM 13  (board pin 33)
-      rotation: 2       # landscape: 270° MADCTL + PIL+90 → correct orientation
+      rotation: 3       # landscape: MADCTL MV+MY + PIL+90 → correct orientation
       offset_left: 26   # ST7735 162x132 controller → 160x80 panel
       offset_top: 1
       bgr: true
@@ -71,7 +71,7 @@ display:
       dc_pin: 5         # BCM 5   (board pin 29)
       rst_pin: 23       # BCM 23  (board pin 16)
       backlight_pin: 12 # BCM 12  (board pin 32)
-      rotation: 2       # landscape: 270° MADCTL + PIL+90 → correct orientation
+      rotation: 3       # landscape: MADCTL MV+MY + PIL+90 → correct orientation
       offset_left: 26   # ST7735 162x132 controller → 160x80 panel
       offset_top: 1
       bgr: true
@@ -82,8 +82,8 @@ display:
 # NOTE: Waveshare docs list K1=GPIO21, K2=GPIO20, but those are SPI1 SCLK/MOSI.
 # Check ~/Zero_LCD_HAT_A_Demo for actual pin numbers and update here.
 buttons:
-  k1_pin: 25   # K1 → dark mode   (confirmed from Zero_LCD_HAT_A_Demo)
-  k2_pin: 26   # K2 → light mode  (confirmed from Zero_LCD_HAT_A_Demo)
+  k1_pin: 27   # K1 → dark mode   (confirmed from Zero_LCD_HAT_A_Demo)
+  k2_pin: 28   # K2 → light mode  (confirmed from Zero_LCD_HAT_A_Demo)
 
 # --- Alert thresholds ---
 # Sensors: MH-Z14A (CO2 NDIR), PT100+MAX31865 (temp), WCM7500 (current)
