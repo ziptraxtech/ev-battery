@@ -115,7 +115,7 @@ class Screen:
 
         # Rotate landscape image to portrait for the hardware driver
         if self._landscape_rot:
-            img = img.rotate(90, expand=True)
+            img = img.rotate(180, expand=True)
 
         if self._dev:
             self._dev.display(img)
