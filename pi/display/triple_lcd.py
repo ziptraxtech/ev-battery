@@ -63,14 +63,6 @@ class Screen:
             )
             driver = cfg.get("driver", "ST7789").upper()
             if driver == "ST7789":
-                # Pre-drive RST HIGH so display is out of hardware reset before init.
-                # A previous process exit can leave RST LOW via gpiod cleanup.
-                rst_pin = cfg.get("rst_pin")
-                if rst_pin:
-                    import subprocess as _sp, time as _t
-                    _sp.run(["pinctrl", "set", str(rst_pin), "op", "dh"],
-                            check=False, capture_output=True)
-                    _t.sleep(0.1)
                 self._dev = st7789.ST7789(**kwargs)
             else:
                 # ST7735 for the two 0.96" screens — pass offset + bgr if set
