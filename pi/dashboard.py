@@ -112,9 +112,9 @@ class Dashboard:
 
             if stale or data is None:
                 images = [
-                    offline_screen("GAS / CO₂"),
-                    offline_screen("TEMPERATURE"),
-                    offline_screen("CURRENT"),
+                    offline_screen("CO₂ / GAS", (240, 240)),
+                    offline_screen("GAS + TEMP", (160, 80)),
+                    offline_screen("AMP + VOLT", (160, 80)),
                 ]
             else:
                 gas_ppm   = data.get("gas_ppm")
@@ -123,9 +123,14 @@ class Dashboard:
                 voltage_v = data.get("voltage_v")
                 power_w   = data.get("power_w")
 
+                t_lvl = temp_level(temp_c, self._thresholds)
+                g_lvl = gas_level(gas_ppm, self._thresholds)
                 images = [
-                    gas_screen(gas_ppm,  gas_level(gas_ppm, self._thresholds)),
-                    temperature_screen(temp_c, temp_level(temp_c, self._thresholds)),
+                    gas_screen(gas_ppm, g_lvl,
+                               temp_c=temp_c, temp_status=t_lvl,
+                               current_a=current_a, voltage_v=voltage_v),
+                    temperature_screen(temp_c, t_lvl,
+                                       gas_ppm=gas_ppm, gas_status=g_lvl),
                     current_screen(current_a, voltage_v, power_w,
                                    self._thresholds["current_max_a"]),
                 ]
