@@ -73,7 +73,13 @@ class Screen:
                     _t.sleep(0.1)
                 self._dev = st7789.ST7789(**kwargs)
             else:
-                # ST7735 for the two 0.96" screens
+                # ST7735 for the two 0.96" screens — pass offset + bgr if set
+                if cfg.get("offset_left") is not None:
+                    kwargs["offset_left"] = cfg["offset_left"]
+                if cfg.get("offset_top") is not None:
+                    kwargs["offset_top"] = cfg["offset_top"]
+                if cfg.get("bgr") is not None:
+                    kwargs["bgr"] = cfg["bgr"]
                 self._dev = st7735.ST7735(**kwargs)
             log.info("Screen %d (%s) %dx%d on SPI%d ready",
                      self.id, self.label, self.w, self.h, cfg["spi_port"])

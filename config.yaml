@@ -56,7 +56,10 @@ display:
       dc_pin: 4         # BCM 4   (board pin 7)
       rst_pin: 24       # BCM 24  (board pin 18)
       backlight_pin: 13 # BCM 13  (board pin 33)
-      rotation: 0
+      rotation: 1       # landscape: 90° rotation
+      offset_left: 26   # ST7735 162x132 controller → 160x80 panel
+      offset_top: 1
+      bgr: true
 
     - id: 2
       label: "CURRENT"
@@ -68,7 +71,10 @@ display:
       dc_pin: 5         # BCM 5   (board pin 29)
       rst_pin: 23       # BCM 23  (board pin 16)
       backlight_pin: 12 # BCM 12  (board pin 32)
-      rotation: 0
+      rotation: 1       # landscape: 90° rotation
+      offset_left: 26   # ST7735 162x132 controller → 160x80 panel
+      offset_top: 1
+      bgr: true
 
 # --- Alert thresholds ---
 # Sensors: MH-Z14A (CO2 NDIR), PT100+MAX31865 (temp), WCM7500 (current)
