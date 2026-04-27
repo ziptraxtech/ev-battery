@@ -43,6 +43,7 @@ class Screen:
         self.w     = cfg["width"]
         self.h     = cfg["height"]
         self._dev  = None
+        self._landscape_rot = 0
 
         driver = cfg.get("driver", "ST7789").upper()
 
@@ -71,10 +72,22 @@ class Screen:
             else:
                 if not _ST7735_AVAIL:
                     return
+                # ST7735 on this HAT is a 160×80 landscape panel whose controller
+                # is natively 80×160 portrait (132×162 GDDRAM, MV bit rotates it).
+                # Passing width=160, height=80 to the library causes RASET to cover
+                # only 80 rows instead of 160, filling just the left half.
+                # Fix: pass portrait dims (w↔h swapped) so RASET = 1..160 correctly,
+                # then rotate each incoming landscape image to portrait before display.
+                rot = cfg.get("rotation", 0)
+                landscape = (rot in (1, 3)) and self.w > self.h
+                hw_w = self.h if landscape else self.w
+                hw_h = self.w if landscape else self.h
+                self._landscape_rot = rot if landscape else 0
+
                 kwargs = dict(
-                    width=self.w,
-                    height=self.h,
-                    rotation=cfg.get("rotation", 0),
+                    width=hw_w,
+                    height=hw_h,
+                    rotation=rot,
                     port=spi_port,
                     cs=cfg["cs"],
                     dc=cfg["dc_pin"],
@@ -99,6 +112,13 @@ class Screen:
     def show(self, img: Image.Image):
         if img.size != (self.w, self.h):
             img = img.resize((self.w, self.h), Image.LANCZOS)
+
+        # Rotate landscape image to portrait for the hardware driver
+        if getattr(self, "_landscape_rot", 0):
+            # rotation=1 (MV+MX): rotate 90° CW (PIL -90) to portrait
+            # rotation=3 (MV+MY): rotate 90° CCW (PIL +90) to portrait
+            angle = 90 if self._landscape_rot == 3 else -90
+            img = img.rotate(angle, expand=True)
 
         if self._dev:
             self._dev.display(img)
