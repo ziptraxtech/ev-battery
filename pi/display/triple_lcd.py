@@ -11,7 +11,7 @@ Screen layout on the HAT:
   enable_uart=1               (for SIM A7672S)
   dtoverlay=disable-bt        (frees full UART for SIM module)
 
-Install driver: pip install st7789 st7735 RPi.GPIO
+Install driver: pip install st7735 spidev RPi.GPIO
 """
 
 import logging
@@ -19,13 +19,20 @@ from PIL import Image
 
 log = logging.getLogger(__name__)
 
+# ST7789 uses our raw spidev/RPi.GPIO driver (avoids gpiod/SPI1 MISO conflict)
 try:
-    import st7789
-    import st7735
-    _BACKEND = "pimoroni"
+    from .raw_st7789 import RawST7789
+    _ST7789_AVAIL = True
 except ImportError:
-    _BACKEND = None
-    log.warning("Display libraries not found — running in preview (PNG) mode")
+    _ST7789_AVAIL = False
+    log.warning("raw_st7789 unavailable — ST7789 screen will be skipped")
+
+try:
+    import st7735
+    _ST7735_AVAIL = True
+except ImportError:
+    _ST7735_AVAIL = False
+    log.warning("st7735 not found — ST7735 screens will be skipped")
 
 
 class Screen:
@@ -37,41 +44,44 @@ class Screen:
         self.h     = cfg["height"]
         self._dev  = None
 
-        if _BACKEND != "pimoroni":
-            return
+        driver = cfg.get("driver", "ST7789").upper()
 
         try:
-            spi_port = cfg["spi_port"]
-            # GPIO19 is SPI1 MISO but is also the ST7789 backlight pin on this HAT.
-            # Drive it HIGH via pinctrl (bypasses gpiod so no EBUSY) before init.
-            if spi_port == 1:
-                import subprocess as _sp
-                _sp.run(["pinctrl", "set", "19", "op", "dh"], check=False, capture_output=True)
-
-            # Check SPI device exists before attempting init
             import os
+            spi_port = cfg["spi_port"]
             spi_dev = f"/dev/spidev{spi_port}.0"
             if not os.path.exists(spi_dev):
-                log.error("Screen %d: %s not found — is dtoverlay=spi%d-1cs in /boot/firmware/config.txt?",
-                          self.id, spi_dev, spi_port)
+                log.error("Screen %d: %s not found", self.id, spi_dev)
                 return
 
-            kwargs = dict(
-                width=self.w,
-                height=self.h,
-                rotation=cfg.get("rotation", 0),
-                port=spi_port,
-                cs=cfg["cs"],       # CE index: 0=CE0, 1=CE1 (NOT the GPIO pin)
-                dc=cfg["dc_pin"],
-                rst=cfg.get("rst_pin"),
-                backlight=cfg.get("backlight_pin"),
-                spi_speed_hz=40_000_000,
-            )
-            driver = cfg.get("driver", "ST7789").upper()
             if driver == "ST7789":
-                self._dev = st7789.ST7789(**kwargs)
+                if not _ST7789_AVAIL:
+                    return
+                self._dev = RawST7789(
+                    width=self.w,
+                    height=self.h,
+                    port=spi_port,
+                    cs=cfg["cs"],
+                    dc=cfg["dc_pin"],
+                    rst=cfg["rst_pin"],
+                    backlight=cfg.get("backlight_pin"),
+                    spi_speed_hz=cfg.get("spi_speed", 40_000_000),
+                    rotation=cfg.get("rotation", 0),
+                )
             else:
-                # ST7735 for the two 0.96" screens — pass offset + bgr if set
+                if not _ST7735_AVAIL:
+                    return
+                kwargs = dict(
+                    width=self.w,
+                    height=self.h,
+                    rotation=cfg.get("rotation", 0),
+                    port=spi_port,
+                    cs=cfg["cs"],
+                    dc=cfg["dc_pin"],
+                    rst=cfg.get("rst_pin"),
+                    backlight=cfg.get("backlight_pin"),
+                    spi_speed_hz=40_000_000,
+                )
                 if cfg.get("offset_left") is not None:
                     kwargs["offset_left"] = cfg["offset_left"]
                 if cfg.get("offset_top") is not None:
@@ -79,17 +89,14 @@ class Screen:
                 if cfg.get("bgr") is not None:
                     kwargs["bgr"] = cfg["bgr"]
                 self._dev = st7735.ST7735(**kwargs)
+
             log.info("Screen %d (%s) %dx%d on SPI%d ready",
-                     self.id, self.label, self.w, self.h, cfg["spi_port"])
+                     self.id, self.label, self.w, self.h, spi_port)
         except Exception as e:
             log.error("Screen %d init failed: %s", self.id, e)
-            # Force-release any leaked gpiod fds from the failed init's exception traceback
-            import sys, gc
-            sys.exc_clear() if hasattr(sys, "exc_clear") else None
-            gc.collect()
+            import gc; gc.collect()
 
     def show(self, img: Image.Image):
-        # Resize to exact screen dimensions if caller passes wrong size
         if img.size != (self.w, self.h):
             img = img.resize((self.w, self.h), Image.LANCZOS)
 

@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Run only the middle 1.3" screen with live sensor data. Small screens off."""
-import time, threading, json, signal, sys, subprocess
+import time, threading, json, signal, sys
 import RPi.GPIO as GPIO
 from PIL import Image, ImageDraw, ImageFont
-import st7789, serial
 
 # Turn off small screen backlights
 GPIO.setwarnings(False)
@@ -12,24 +11,21 @@ for pin in (13, 12):
     GPIO.setup(pin, GPIO.OUT)
     GPIO.output(pin, GPIO.LOW)
 
-# GPIO19 is SPI1 MISO but doubles as backlight — drive HIGH via pinctrl (bypasses
-# gpiod ownership so no EBUSY) before ST7789 claims any pins.
-subprocess.run(["pinctrl", "set", "19", "op", "dh"], check=False, capture_output=True)
-# Pre-drive RST (GPIO27) HIGH before init — ensures display is out of hardware reset
-subprocess.run(["pinctrl", "set", "27", "op", "dh"], check=False, capture_output=True)
-time.sleep(0.1)
+# Use raw ST7789 driver (spidev + RPi.GPIO) — avoids gpiod/SPI1 MISO conflict
+sys.path.insert(0, "/home/zipsure-ai/repo/pi")
+from display.raw_st7789 import RawST7789
+import serial
 
-# Init middle screen
-mid = st7789.ST7789(
+mid = RawST7789(
     width=240, height=240, rotation=0,
-    port=1, cs=0, dc=22, rst=27, backlight=None,
-    spi_speed_hz=40000000,
+    port=1, cs=0, dc=22, rst=27, backlight=19,
+    spi_speed_hz=40_000_000,
 )
 
 try:
-    font_lg = ImageFont.truetype("display/fonts/RobotoMono-Bold.ttf",    44)
-    font_md = ImageFont.truetype("display/fonts/RobotoMono-Regular.ttf", 20)
-    font_sm = ImageFont.truetype("display/fonts/RobotoMono-Regular.ttf", 15)
+    font_lg = ImageFont.truetype("/home/zipsure-ai/repo/pi/display/fonts/RobotoMono-Bold.ttf",    44)
+    font_md = ImageFont.truetype("/home/zipsure-ai/repo/pi/display/fonts/RobotoMono-Regular.ttf", 20)
+    font_sm = ImageFont.truetype("/home/zipsure-ai/repo/pi/display/fonts/RobotoMono-Regular.ttf", 15)
 except Exception:
     font_lg = font_md = font_sm = ImageFont.load_default()
 
@@ -115,7 +111,7 @@ def render():
 def shutdown(sig, frame):
     global running
     running = False
-    GPIO.cleanup()
+    mid.cleanup()
     sys.exit(0)
 
 signal.signal(signal.SIGINT,  shutdown)
